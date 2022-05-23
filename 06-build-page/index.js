@@ -75,15 +75,25 @@ function buildCss() {
       const streamWritable = fs.createWriteStream(path.join(distPath, 'style.css'));
       streamWritable.on('error', error => console.error(error.message));
   
-      files.forEach(file => {
-        const filePath = path.join(stylesPath, file.name);
-        if (file.isDirectory() || path.extname(filePath) !== '.css') return;
+      Promise.all(
+        files.map(file => {
+          const filePath = path.join(stylesPath, file.name);
+          if (file.isDirectory() || path.extname(filePath) !== '.css') return;
   
-        const streamReadable = fs.createReadStream(path.join(__dirname, 'styles', file.name));
-        streamReadable.on('error', error => console.error(error.message));
-  
-        streamReadable.pipe(streamWritable, { end: false });
-      });
+          const streamReadable = fs.createReadStream(path.join(__dirname, 'styles', file.name), 'utf-8');
+          
+          return new Promise((resolve, reject) => {
+            let basket = '';
+            streamReadable.on('data', (data) => basket += data);
+            streamReadable.on('end', () => resolve(basket));
+            streamReadable.on('error', (error) => reject(error));
+          });
+        })
+      )
+        .then(values => {
+          values.forEach(value => streamWritable.write(`${value}\n`));
+        })
+        .catch((error) => console.error(error.message));
     }
   );
 }
