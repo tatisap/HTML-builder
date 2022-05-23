@@ -3,6 +3,7 @@ const fs = require('fs');
 const { stdin, stdout } = process;
 
 const writableStream = fs.createWriteStream(path.join(__dirname, 'text.txt'));
+writableStream.on('error', (error) => console.error(error.message));
 
 stdout.write('\nHi! I am waiting for your input' +
 '\nDo not forget to press Enter if you want to save a text fragment into a file text.txt' +
@@ -15,5 +16,3 @@ stdin.on('data', data => {
 
 process.on('exit', () => stdout.write('\nData has been written to text.txt\nHave a nice day!\n'));
 process.on('SIGINT', () => process.exit());
-
-
