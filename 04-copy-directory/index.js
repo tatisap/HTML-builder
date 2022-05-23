@@ -1,36 +1,50 @@
 const path = require('path');
 const fs = require('fs');
+const folderName = 'files';
+const from = path.join(__dirname, `${folderName}`);
+const to = path.join(__dirname, `${folderName}-copy`);
 
-function copyDir(dir) {
-  fs.mkdir(
-    path.join(__dirname, `${dir}-copy`),
-    { recursive: true },
+copyDir(from, to);
+
+function copyDir(from, to) {
+  fs.rm(
+    to,
+    { force: true, recursive: true },
     error => {
-      if (error) console.error(error.message);
-      copyFiles(dir);
+      if (error) return console.error(error.message);
+      
+      fs.mkdir(
+        to,
+        { recursive: true },
+        error => {
+          if (error) return console.error(error.message);
+          copyFiles(from, to);
+        }
+      );
     }
   );
 }
 
-function copyFiles(dir) {
+function copyFiles(from, to) {
   fs.readdir(
-    path.join(__dirname, dir),
+    from,
     {withFileTypes: true},
     (error, files) => {
-      if (error) console.error(error.message);
+      if (error) return console.error(error.message);
 
       files.forEach(file => {
-        if (file.isDirectory()) return;
-        fs.copyFile(
-          path.join(__dirname, dir, file.name),
-          path.join(__dirname, `${dir}-copy`, file.name),
-          error => {
-            if (error) console.error(error.message);
-          }
-        );
+        if (file.isDirectory()) {
+          copyDir(path.join(from, file.name), path.join(to, file.name));
+        } else {
+          fs.copyFile(
+            path.join(from, file.name),
+            path.join(to, file.name),
+            error => {
+              if (error) return console.error(error.message);
+            }
+          );
+        }
       });
     }
   );
 }
-
-copyDir('files');
