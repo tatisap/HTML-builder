@@ -59,7 +59,6 @@ function buildHtml() {
   
         const writableHtmlStream = fs.createWriteStream(path.join(__dirname, 'project-dist', 'index.html'));
         writableHtmlStream.write(content);
-        console.log();
       })
       .catch((error) => console.error(error.message));
   });
